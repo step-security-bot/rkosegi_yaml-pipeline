@@ -29,7 +29,8 @@ import (
 )
 
 func (e *ExecOpSpec) String() string {
-	return fmt.Sprintf("Exec[Program=%s,Dir=%s,Args=%d]", e.Program, safeStrDeref(e.Dir), safeSize(e.Args))
+	return fmt.Sprintf("Exec[Program=%s,Dir=%s,Args=%d,Stdout=%v,Stderr=%v]",
+		e.Program, safeStrDeref(e.Dir), safeSize(e.Args), e.Stdout, e.Stderr)
 }
 
 func (e *ExecOpSpec) ensureValues() {
@@ -59,20 +60,17 @@ func (e *ExecOpSpec) Do(ctx ActionContext) error {
 		}
 	}()
 	type streamTgt struct {
-		sd     *StreamDestination
-		output *string
-		target *io.Writer
+		sd *StreamDestination
+		fn func(w io.Writer)
 	}
 	for _, stream := range []streamTgt{
 		{
 			sd: e.Stdout,
-			// output: e.Stdout,
-			target: &cmd.Stdout,
+			fn: func(w io.Writer) { cmd.Stdout = w },
 		},
 		{
 			sd: e.Stderr,
-			// output: e.Stderr,
-			target: &cmd.Stderr,
+			fn: func(w io.Writer) { cmd.Stderr = w },
 		},
 	} {
 		if stream.sd == nil {
@@ -81,14 +79,15 @@ func (e *ExecOpSpec) Do(ctx ActionContext) error {
 		if err := stream.sd.Resolve(ctx); err != nil {
 			return err
 		}
+		stream.fn(stream.sd)
 		closables = append(closables, stream.sd)
 	}
+	defer ctx.InvalidateSnapshot()
 	ctx.Logger().Log(fmt.Sprintf("prog=%s,dir=%s,args=[%s]", prog, safeStrDeref(dir), strings.Join(args, " ")))
 	err := cmd.Run()
 	if exitErr, ok := errors.AsType[*osx.ExitError](err); ok {
 		if e.SaveExitCodeTo != nil {
 			ctx.Data().Set(pp.MustParse(*e.SaveExitCodeTo), dom.LeafNode(exitErr.ExitCode()))
-			ctx.InvalidateSnapshot()
 		}
 		if !slices.Contains(*e.ValidExitCodes, exitErr.ExitCode()) {
 			return err

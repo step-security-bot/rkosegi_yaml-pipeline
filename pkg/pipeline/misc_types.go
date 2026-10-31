@@ -26,6 +26,7 @@ import (
 
 	te "github.com/rkosegi/yaml-pipeline/pkg/pipeline/template_engine"
 	"github.com/rkosegi/yaml-toolkit/dom"
+	"github.com/rkosegi/yaml-toolkit/fluent"
 	"github.com/rkosegi/yaml-toolkit/path"
 	"gopkg.in/yaml.v3"
 )
@@ -272,6 +273,32 @@ type StreamDestination struct {
 	Append bool `json:"append,omitempty" yaml:"append,omitempty"`
 
 	wc io.WriteCloser
+}
+
+func (s *StreamDestination) String() string {
+	return fmt.Sprintf("SD{Tree=%v, File=%v}", s.Tree, s.File)
+}
+
+func (s *StreamDestination) UnmarshalYAML(node *yaml.Node) (err error) {
+	switch node.Kind {
+	case yaml.ScalarNode:
+		s.File = &ValOrRef{Val: node.Value}
+	case yaml.MappingNode:
+		m := make(map[string]any)
+		_ = node.Decode(&m)
+		var (
+			n  any
+			ok bool
+		)
+		if n, ok = m["tree"]; ok {
+			s.Tree = fluent.MustTransform[ValOrRef](n, dom.DefaultYamlCodec())
+		} else if n, ok = m["file"]; ok {
+			s.File = fluent.MustTransform[ValOrRef](n, dom.DefaultYamlCodec())
+		}
+	default:
+		return nil
+	}
+	return nil
 }
 
 type fileWriter struct {
