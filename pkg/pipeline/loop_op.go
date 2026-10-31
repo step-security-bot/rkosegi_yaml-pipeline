@@ -24,7 +24,7 @@ func (l *LoopOpSpec) String() string {
 
 func (l *LoopOpSpec) doAction(ctx ActionContext, act Action) (err error) {
 	if act != nil && !reflect.ValueOf(act).IsNil() {
-		return ctx.Executor().Execute(act)
+		return ctx.Executor().ExecuteContext(ctx.Context(), act)
 	}
 	return nil
 }

@@ -27,7 +27,7 @@ func (e *ExtOpSpec) Do(ctx ActionContext) error {
 		e.Args = &map[string]any{}
 	}
 	if fn := ctx.Ext().GetActionFactory(e.Function); fn != nil {
-		return ctx.Executor().Execute(fn.ForArgs(ctx, *e.Args))
+		return ctx.Executor().ExecuteContext(ctx.Context(), fn.ForArgs(ctx, *e.Args))
 	}
 	return fmt.Errorf("no such function: %s", e.Function)
 }

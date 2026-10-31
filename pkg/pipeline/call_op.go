@@ -57,7 +57,7 @@ func (c *CallOpSpec) Do(ctx ActionContext) error {
 			ctx.Data().Remove(ap)
 			ctx.InvalidateSnapshot()
 		}()
-		return ctx.Executor().Execute(spec)
+		return ctx.Executor().ExecuteContext(ctx.Context(), spec)
 	}
 }
 

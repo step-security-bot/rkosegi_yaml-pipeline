@@ -81,11 +81,11 @@ func (fea *ForEachOpSpec) performWithItem(ctx ActionContext, item dom.Node) (err
 
 	for _, act := range fea.Action.Operations.toList() {
 		act = act.CloneWith(ctx)
-		if err = ctx.Executor().Execute(act); err != nil {
+		if err = ctx.Executor().ExecuteContext(ctx.Context(), act); err != nil {
 			return errWithInfo(err, "forEach/execute CloneWith")
 		}
 	}
-	return ctx.Executor().Execute(fea.Action.Children)
+	return ctx.Executor().ExecuteContext(ctx.Context(), fea.Action.Children)
 }
 
 func (fea *ForEachOpSpec) String() string {

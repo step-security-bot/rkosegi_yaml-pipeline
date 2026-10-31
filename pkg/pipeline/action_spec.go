@@ -57,7 +57,7 @@ func (s ActionSpec) Do(ctx ActionContext) error {
 				return nil
 			}
 		}
-		if err := ctx.Executor().Execute(a); err != nil {
+		if err := ctx.Executor().ExecuteContext(ctx.Context(), a); err != nil {
 			if s.shouldPropagateError() {
 				return err
 			}

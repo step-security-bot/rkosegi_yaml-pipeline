@@ -24,7 +24,7 @@ import (
 )
 
 func TestCallUnregistered(t *testing.T) {
-	assert.Error(t, mockEmptyActCtx().Executor().Execute(&CallOpSpec{
+	assert.Error(t, mockEmptyActCtx().Executor().ExecuteContext(t.Context(), &CallOpSpec{
 		Name: "invalid",
 	}))
 }
@@ -39,7 +39,7 @@ func TestCallOp(t *testing.T) {
 
 		ctx.Data().Set(pp.MustParse("input.myargs.arg1"), dom.LeafNode(1))
 		ctx.Data().Set(pp.MustParse("input.myargs.arg2"), dom.LeafNode("X"))
-		err = ctx.Executor().Execute(&ActionSpec{
+		err = ctx.Executor().ExecuteContext(t.Context(), &ActionSpec{
 			Children: map[string]ActionSpec{
 				"def": {
 					ActionMeta: ActionMeta{

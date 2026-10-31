@@ -22,7 +22,7 @@ import (
 
 func (na ChildActions) Do(ctx ActionContext) error {
 	for _, name := range sortActionNames(na) {
-		err := ctx.Executor().Execute(na[name])
+		err := ctx.Executor().ExecuteContext(ctx.Context(), na[name])
 		if err != nil {
 			return err
 		}
