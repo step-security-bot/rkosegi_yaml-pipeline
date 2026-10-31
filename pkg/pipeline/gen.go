@@ -702,7 +702,7 @@ type TemplateOpSpec struct {
 	Path *ValOrRef `json:"path" yaml:"path"`
 
 	// Template Auxiliary object that represent either direct string value or reference to value within the data tree
-	Template ValOrRef `json:"template" yaml:"template"`
+	Template *UntemplatedValOrRef `json:"template" yaml:"template"`
 
 	// Trim When true, whitespace is trimmed off the value
 	Trim *bool `json:"trim,omitempty" yaml:"trim,omitempty"`

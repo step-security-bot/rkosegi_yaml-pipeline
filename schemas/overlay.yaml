@@ -99,7 +99,7 @@ actions:
         path:
           x-go-type: '*ValOrRef'
         template:
-          x-go-type: ValOrRef
+          x-go-type: '*UntemplatedValOrRef'
   - target: $.components.schemas.xmlImportOptions
     update:
       properties:

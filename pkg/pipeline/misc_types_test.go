@@ -32,8 +32,12 @@ func makeVal(str string) *ValOrRef {
 	return &ValOrRef{Val: str}
 }
 
-func makeRef(path string) *ValOrRef {
-	return &ValOrRef{Ref: path, isRef: true}
+func makeUntemplatedVal(str string) *UntemplatedValOrRef {
+	return &UntemplatedValOrRef{Val: str}
+}
+
+func makeUntemplatedRef(ref string) *UntemplatedValOrRef {
+	return &UntemplatedValOrRef{Ref: ref, isRef: true}
 }
 
 func TestValOrRefMarshalYaml(t *testing.T) {
@@ -300,6 +304,57 @@ func TestStreamDestination(t *testing.T) {
 		data, err = os.ReadFile(fpath)
 		assert.Equal(t, []byte("Ola"), data)
 		assert.NoError(t, err)
+	})
+}
 
+func TestStreamDestinationUnmarshal(t *testing.T) {
+	dec := dom.DefaultYamlCodec().Decoder()
+	var err error
+	t.Run("empty", func(t *testing.T) {
+		var sd StreamDestination
+		err = dec(strings.NewReader(""), &sd)
+		assert.Error(t, err)
+	})
+	t.Run("leaf", func(t *testing.T) {
+		var sd StreamDestination
+		err = dec(strings.NewReader("abcd"), &sd)
+		assert.NoError(t, err)
+		assert.NotNil(t, sd.File)
+	})
+	t.Run("map/dom", func(t *testing.T) {
+		var sd StreamDestination
+		err = dec(strings.NewReader(`tree: x.y`), &sd)
+		assert.NoError(t, err)
+		assert.Nil(t, sd.File)
+		assert.NotNil(t, sd.Tree)
+	})
+	t.Run("empty map", func(t *testing.T) {
+		var sd StreamDestination
+		err = dec(strings.NewReader(`{}`), &sd)
+		assert.NoError(t, err)
+	})
+	t.Run("tree - invalid", func(t *testing.T) {
+		var sd StreamDestination
+		err = dec(strings.NewReader(`tree: *`), &sd)
+		assert.Error(t, err)
+	})
+	t.Run("list", func(t *testing.T) {
+		var sd StreamDestination
+		err = dec(strings.NewReader(`[]`), &sd)
+		assert.NoError(t, err)
+		assert.Nil(t, sd.File)
+		assert.Nil(t, sd.Tree)
+	})
+	t.Run("file - scalar", func(t *testing.T) {
+		var sd StreamDestination
+		assert.NoError(t, dec(strings.NewReader(`file: aaaa`), &sd))
+		assert.NotNil(t, sd.File)
+	})
+}
+
+func TestUntemplatedValOrRef(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		vr := &UntemplatedValOrRef{Ref: "x.y", isRef: true}
+		assert.Equal(t, "", vr.Resolve(newMockActBuilder().build()))
 	})
 }

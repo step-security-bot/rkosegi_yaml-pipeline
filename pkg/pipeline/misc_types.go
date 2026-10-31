@@ -63,6 +63,23 @@ func (pv *AnyVal) Value() dom.Node {
 	return pv.v
 }
 
+type UntemplatedValOrRef struct {
+	ValOrRef
+}
+
+func (pv *UntemplatedValOrRef) Resolve(ctx ActionContext) string {
+	if pv == nil {
+		return ""
+	}
+	if pv.isRef {
+		if n := ctx.Data().Get(pp.MustParse(pv.Ref)); n != nil && n.IsLeaf() {
+			return fmt.Sprintf("%v", n.AsLeaf().Value())
+		}
+		return ""
+	}
+	return pv.Val
+}
+
 // ValOrRef is either immediate leaf value or reference to a dom.Leaf in data tree at given path.
 // If Path references non-existent node, or node pointed to is not a dom.Leaf, empty value is returned
 type ValOrRef struct {

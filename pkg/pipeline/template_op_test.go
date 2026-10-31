@@ -33,7 +33,7 @@ func TestExecuteTemplateOp(t *testing.T) {
 	gd = dom.ContainerNode()
 	gd.Set(pp.MustParse("root.leaf1"), dom.LeafNode(123456))
 	ts = TemplateOpSpec{
-		Template: *makeVal(`{{ (mul .root.leaf1 2) | quote }}`),
+		Template: makeUntemplatedVal(`{{ (mul .root.leaf1 2) | quote }}`),
 		Path:     &ValOrRef{Val: "result.x1"},
 		Trim:     new(true),
 	}
@@ -49,7 +49,7 @@ func TestExecuteTemplateOp(t *testing.T) {
 
 	// empty path error
 	ts = TemplateOpSpec{
-		Template: *makeVal(`TEST`),
+		Template: makeUntemplatedVal(`TEST`),
 	}
 	err = New(WithData(gd)).Execute(&ts)
 	assert.Error(t, err)
@@ -57,7 +57,7 @@ func TestExecuteTemplateOp(t *testing.T) {
 
 	// empty path error (other form)
 	ts = TemplateOpSpec{
-		Template: *makeVal(`TEST`),
+		Template: makeUntemplatedVal(`TEST`),
 		Path:     &ValOrRef{Ref: "a.b.c.d"},
 	}
 	err = New(WithData(gd)).Execute(&ts)
@@ -65,20 +65,20 @@ func TestExecuteTemplateOp(t *testing.T) {
 	assert.Equal(t, ErrPathEmpty, err)
 
 	ts = TemplateOpSpec{
-		Template: *makeVal(`{{}}{{`),
+		Template: makeUntemplatedVal(`{{}}{{`),
 		Path:     &ValOrRef{Val: "result"},
 	}
 	assert.Error(t, New(WithData(gd)).Execute(&ts))
 
 	ts = TemplateOpSpec{
-		Template: *makeVal(`{{ invalid_func }}`),
+		Template: makeUntemplatedVal(`{{ invalid_func }}`),
 		Path:     &ValOrRef{Val: "result"},
 	}
 	assert.Error(t, New(WithData(gd)).Execute(&ts))
 
 	t.Run("render value to path with dot", func(t *testing.T) {
 		ts = TemplateOpSpec{
-			Template: *makeVal(`OK`),
+			Template: makeUntemplatedVal(`OK`),
 			Path:     &ValOrRef{Val: "sub.path\\.with\\.dot"},
 		}
 		assert.NoError(t, New(WithData(gd)).Execute(&ts))
@@ -96,7 +96,7 @@ func TestExecuteTemplateOpAsYaml(t *testing.T) {
 	// 1, render yaml source manually
 	gd = dom.ContainerNode()
 	ts = TemplateOpSpec{
-		Template: *makeVal(`
+		Template: makeUntemplatedVal(`
 items:
 {{- range (split "," "a,b,c") }}
 {{ printf "- %s" . }}
@@ -111,7 +111,7 @@ items:
 	// 2, render using template function
 	gd = dom.ContainerNode()
 	ts = TemplateOpSpec{
-		Template: *makeVal(`
+		Template: makeUntemplatedVal(`
 items:
 {{ (split "," "a,b,c") | list | toYaml }}
 `),
@@ -125,7 +125,7 @@ items:
 	// 3, render invalid
 	gd = dom.ContainerNode()
 	ts = TemplateOpSpec{
-		Template: *makeVal(`*** this is not a YAML ***`),
+		Template: makeUntemplatedVal(`*** this is not a YAML ***`),
 		Path:     &ValOrRef{Val: "Out"},
 		ParseAs:  new(ParseTextAsYaml),
 	}
@@ -135,7 +135,7 @@ items:
 
 func TestExecuteTemplateOpAsInvalid(t *testing.T) {
 	assert.Error(t, New().Execute(&TemplateOpSpec{
-		Template: *makeVal(`---\nOla: Hi`),
+		Template: makeUntemplatedVal(`---\nOla: Hi`),
 		Path:     &ValOrRef{Val: "Out"},
 		ParseAs:  new(ParseTextAs("invalid")),
 	}))
@@ -149,7 +149,7 @@ func TestExecuteTemplateOpAsFloat64(t *testing.T) {
 	)
 	gd = dom.ContainerNode()
 	ts = &TemplateOpSpec{
-		Template: *makeVal(`{{ maxf 1.5 3 4.5 }}`),
+		Template: makeUntemplatedVal(`{{ maxf 1.5 3 4.5 }}`),
 		Path:     &ValOrRef{Val: "Out"},
 		ParseAs:  new(ParseTextAsFloat64),
 	}
@@ -159,7 +159,7 @@ func TestExecuteTemplateOpAsFloat64(t *testing.T) {
 
 	gd.AddValue("X", dom.LeafNode("Ou"))
 	ts = &TemplateOpSpec{
-		Template: *makeVal(`XYZ`),
+		Template: makeUntemplatedVal(`XYZ`),
 		Path:     &ValOrRef{Val: "Out"},
 		ParseAs:  new(ParseTextAsFloat64),
 	}
@@ -175,7 +175,7 @@ func TestExecuteTemplateOpAsInt64(t *testing.T) {
 	)
 	gd = dom.ContainerNode()
 	ts = &TemplateOpSpec{
-		Template: *makeVal(`{{ max 1 3 5 }}`),
+		Template: makeUntemplatedVal(`{{ max 1 3 5 }}`),
 		Path:     &ValOrRef{Val: "Out"},
 		ParseAs:  new(ParseTextAsInt64),
 	}
@@ -185,7 +185,7 @@ func TestExecuteTemplateOpAsInt64(t *testing.T) {
 
 	gd.AddValue("X", dom.LeafNode("Ou"))
 	ts = &TemplateOpSpec{
-		Template: *makeVal(`XYZ`),
+		Template: makeUntemplatedVal(`XYZ`),
 		Path:     &ValOrRef{Val: "Out"},
 		ParseAs:  new(ParseTextAsInt64),
 	}
@@ -200,7 +200,7 @@ func TestTemplateOpRef(t *testing.T) {
 `))
 	gd.Set(pp.MustParse("vars.message"), dom.LeafNode(`Ola`))
 	ts := &TemplateOpSpec{
-		Template: *makeRef(`templates.myTemplate1`),
+		Template: makeUntemplatedRef(`templates.myTemplate1`),
 		Path:     makeVal("Out"),
 		Trim:     new(true),
 	}
