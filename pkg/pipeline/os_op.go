@@ -60,6 +60,10 @@ func (m *OsOpRemoveSpec) String() string {
 	return fmt.Sprintf("remove[recursive=%v, path=%s]", safeBoolDeref(m.Recursive), m.Path.String())
 }
 
+func (m *OsOpRenameSpec) String() string {
+	return fmt.Sprintf("rename[old=%v, new=%s]", m.OldPath.String(), m.NewPath.String())
+}
+
 func (m *OsOpStatSpec) String() string {
 	return fmt.Sprintf("stat[path=%s]", m.Path.String())
 }

@@ -221,6 +221,7 @@ func TestOsOp(t *testing.T) {
 					OldPath: &ValOrRef{Val: f.Name()},
 				},
 			}
+			t.Log(oo)
 			assert.NoError(t, oo.Do(newMockActBuilder().testLogger(t).build()))
 		})
 		t.Run("should fail on non-existing file", func(t *testing.T) {
